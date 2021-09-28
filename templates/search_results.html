@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<h2>This is the results of your search</h2>
+<br />
+
+{% for post in queryset %}   
+      <div class="item d-flex justify-content-between">
+        <h2 class="h3">&emsp;&emsp;<a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+        </h2>
+      </div>
+    <br />   
+{% endfor %}
+<br />  
+{% endblock %}
