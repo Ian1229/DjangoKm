@@ -96,22 +96,44 @@ def index(request):
     return render(request, 'index.html', context)
 
 
-class PostListView(ListView):
-    form = EmailSignupForm()
-    model = Post
-    template_name = 'blog.html'
-    context_object_name = 'queryset'
-    paginate_by = 1
+# class PostListView(ListView):
+#     form = EmailSignupForm()
+#     model = Post
+#     template_name = 'blog.html'
+#     context_object_name = 'queryset'
+#     paginate_by = 1
 
-    def get_context_data(self, **kwargs):
-        category_count = get_category_count()
-        most_recent = Post.objects.order_by('-timestamp')[:3]
-        context = super().get_context_data(**kwargs)
-        context['most_recent'] = most_recent
-        context['page_request_var'] = "page"
-        context['category_count'] = category_count
-        context['form'] = self.form
-        return context
+#     def get_context_data(self, **kwargs):
+#         category_count = get_category_count()
+#         most_recent = Post.objects.order_by('-timestamp')[:3]
+#         context = super().get_context_data(**kwargs)
+#         context['most_recent'] = most_recent
+#         context['page_request_var'] = "page"
+#         context['category_count'] = category_count
+#         context['form'] = self.form
+#         return context
+def blog(request):
+    category_count = get_category_count()
+    print(category_count)
+    most_recent = Post.objects.order_by('-timestamp')[:3]
+    post_list = Post.objects.all()
+    paginator = Paginator(post_list, 4)
+    page_request_var = 'page'
+    page = request.GET.get(page_request_var)
+    try:
+        paginated_queryset = paginator.page(page)
+    except PageNotAnInteger:
+        paginated_queryset = paginator.page(1)
+    except EmptyPage:
+        paginated_queryset = paginator.page(paginator.num_pages)
+
+    context = {
+        'queryset': paginated_queryset,
+        'most_recent': most_recent,
+        'page_request_var': page_request_var,
+        'category_count': category_count
+    }
+    return render(request, 'blog.html', context)
 
 
 def post_list(request):
@@ -143,7 +165,6 @@ class PostDetailView(DetailView):
     template_name = 'post.html'
     context_object_name = 'post'
     form = CommentForm()
-    
 
     def get_object(self):
         obj = super().get_object()
@@ -182,11 +203,9 @@ def post_detail(request, id):
     category_count = get_category_count()
     most_recent = Post.objects.order_by('-timestamp')[:3]
     post = get_object_or_404(Post, id=id)
-    
-    
+
     # if request.user.is_authenticated:
-        # PostView.objects.get_or_create(user=request.user, post=post)
-    
+    # PostView.objects.get_or_create(user=request.user, post=post)
 
     form = CommentForm(request.POST or None)
     if request.method == "POST":
